@@ -39,66 +39,68 @@
 </div>
 
 <script>
-window.onload = function() {
-  const hashParams = new URLSearchParams(window.location.hash.substring(1));
-  const access_token = hashParams.get('access_token');
+// === Get access token immediately ===
+const hashParams = new URLSearchParams(window.location.hash.substring(1));
+const access_token = hashParams.get('access_token');
 
+// === When page loads ===
+window.onload = function() {
   if (!access_token) {
     document.getElementById('reset-form').innerHTML = '<h2>Missing access token. Please request a new password reset email.</h2>';
+  }
+};
+
+// === Validate password strength ===
+function validatePassword(password) {
+  const minLength = /.{6,}/;
+  const uppercase = /[A-Z]/;
+  const lowercase = /[a-z]/;
+  const number = /\d/;
+  const specialChar = /[!@#$%^&*(),.?":{}|<>\\/~`+=_-]/;
+
+  return minLength.test(password) &&
+         uppercase.test(password) &&
+         lowercase.test(password) &&
+         number.test(password) &&
+         specialChar.test(password);
+}
+
+// === Submit reset password ===
+function resetPassword() {
+  const newPassword = document.getElementById('newPassword').value;
+  const confirmPassword = document.getElementById('confirmPassword').value;
+  const errorDiv = document.getElementById('errorMessage');
+
+  errorDiv.innerText = "";
+
+  if (newPassword !== confirmPassword) {
+    errorDiv.innerText = "Passwords do not match.";
     return;
   }
 
-  function validatePassword(password) {
-    const minLength = /.{6,}/;
-    const uppercase = /[A-Z]/;
-    const lowercase = /[a-z]/;
-    const number = /\d/;
-    const specialChar = /[!@#$%^&*(),.?":{}|<>\\/~`+=_-]/;
-
-    return minLength.test(password) &&
-           uppercase.test(password) &&
-           lowercase.test(password) &&
-           number.test(password) &&
-           specialChar.test(password);
+  if (!validatePassword(newPassword)) {
+    errorDiv.innerText = "Password must be at least 6 characters and include an uppercase, lowercase, number, and special character.";
+    return;
   }
 
-  window.resetPassword = function() {
-    const newPassword = document.getElementById('newPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    const errorDiv = document.getElementById('errorMessage');
-
-    errorDiv.innerText = "";
-
-    if (newPassword !== confirmPassword) {
-      errorDiv.innerText = "Passwords do not match.";
-      return;
+  fetch('https://xzlclzbzegzzhkhdztby.supabase.co/auth/v1/user', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${access_token}`
+    },
+    body: JSON.stringify({ password: newPassword })
+  })
+  .then(response => {
+    if (response.ok) {
+      window.location.href = "success.html";
+    } else {
+      errorDiv.innerText = "Failed to reset password. Please try again.";
     }
-
-    if (!validatePassword(newPassword)) {
-      errorDiv.innerText = "Password must be at least 6 characters and include an uppercase, lowercase, number, and special character.";
-      return;
-    }
-
-fetch('https://xzlclzbzegzzhkhdztby.supabase.co/auth/v1/user', {
-  method: 'PATCH',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${access_token}`
-  },
-  body: JSON.stringify({ password: newPassword })
-})
-.then(response => {
-  if (response.ok) {
-    window.location.href = "success.html";
-  } else {
-    errorDiv.innerText = "Failed to reset password. Please try again.";
-  }
-})
-.catch(err => {
-  errorDiv.innerText = "An error occurred. Please try again.";
-});
-
-  }
+  })
+  .catch(err => {
+    errorDiv.innerText = "An error occurred. Please try again.";
+  });
 }
 </script>
 
