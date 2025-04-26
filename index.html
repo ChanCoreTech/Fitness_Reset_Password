@@ -75,7 +75,7 @@
     }
 
     if (!validatePassword(newPassword)) {
-      errorDiv.innerText = "Password must be at least 6 characters and include an uppercase, lowercase, number, and special character.";
+      errorDiv.innerText = "Password must be different than the previous password and at least 6 characters and include an uppercase, lowercase, number, and special character.";
       return;
     }
 
@@ -83,7 +83,7 @@
 
     if (error) {
       console.error('Failed to reset password:', error);
-      errorDiv.innerText = "Failed to reset password. Please request a new reset email.";
+      errorDiv.innerText = "Failed to reset password. Please contact support at fitness-freaks@gmail.com. Note that the new password must be different than your previous password.";
     } else {
       window.location.href = "success.html";
     }
