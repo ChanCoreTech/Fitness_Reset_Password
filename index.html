@@ -52,14 +52,14 @@
     refresh_token = hashParams.get('refresh_token');
 
     if (!access_token || !refresh_token) {
-      document.getElementById('reset-form').innerHTML = '<h2>Missing access token. Please request a new password reset email.</h2>';
+      document.getElementById('reset-form').innerHTML = '<h2>Missing access token. Please contact fitness-freaks@gmail.com for support.</h2>';
       return;
     }
 
     const { error } = await supabase.auth.setSession({ access_token, refresh_token });
     if (error) {
       console.error('Session error:', error);
-      document.getElementById('reset-form').innerHTML = '<h2>Session error. Please request a new password reset email.</h2>';
+      document.getElementById('reset-form').innerHTML = '<h2>Session error. Please contact fitness-freaks@gmail.com for support.</h2>';
     }
   };
 
