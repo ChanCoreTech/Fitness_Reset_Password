@@ -39,8 +39,9 @@
 </div>
 
 <script>
-  const url = new URL(window.location.href);
-  const access_token = url.searchParams.get('access_token');
+  const hashParams = new URLSearchParams(window.location.hash.substring(1));
+const access_token = hashParams.get('access_token');
+
 
   if (!access_token) {
     document.getElementById('reset-form').innerHTML = '<h2>Missing access token. Please request a new password reset email.</h2>';
