@@ -4,47 +4,24 @@
   <meta charset="UTF-8">
   <title>Reset Password</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f2f2f2;
-      text-align: center;
-      padding-top: 50px;
-    }
-    input {
-      margin: 10px;
-      padding: 10px;
-      width: 250px;
-      font-size: 16px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .error {
-      color: red;
-      margin-top: 10px;
-    }
+    /* your styles here */
   </style>
 
-  <!-- ✅ Supabase Client Library -->
+  <!-- ✅ Only load the Supabase library in the HEAD -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<h1>Please use the text boxes below to reset your password.</h1>
+<h1>...</h1>
 
 <div id="reset-form">
-  <input type="password" id="newPassword" placeholder="New Password"><br>
-  <input type="password" id="confirmPassword" placeholder="Confirm Password"><br>
-  <button onclick="resetPassword()">Submit</button>
-  <div id="errorMessage" class="error"></div>
+  <!-- your form here -->
 </div>
 
+<!-- ✅ Move your WHOLE script block down here -->
 <script>
-  // ✅ Your Supabase project settings
   const supabaseUrl = 'https://xzlclzbzegzzhkhdztby.supabase.co';
-  const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bGNsemJ6ZWd6emhraGR6dGJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA4Njc0MTcsImV4cCI6MjA1NjQ0MzQxN30.rAWi91KZ5gT40NWeLLv0qzU8g7-oh3u0Qz5OwSFMsoc'; 
+  const supabaseAnonKey = 'YOUR-REAL-ANON-KEY';
   const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
   window.onload = async function() {
@@ -57,7 +34,6 @@
       return;
     }
 
-    // ✅ Restore session
     const { data, error } = await supabase.auth.setSession({
       access_token: access_token,
       refresh_token: refresh_token,
@@ -68,8 +44,6 @@
       document.getElementById('reset-form').innerHTML = '<h2>Session error. Please request a new password reset email.</h2>';
       return;
     }
-
-    console.log("Session restored successfully.");
   };
 
   window.resetPassword = async function() {
@@ -94,7 +68,7 @@
       console.error(error);
       errorDiv.innerText = "Failed to reset password. Please try again.";
     } else {
-      window.location.href = "success.html"; // ✅ Redirect to success page
+      window.location.href = "success.html";
     }
   };
 
