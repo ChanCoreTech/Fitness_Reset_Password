@@ -26,6 +26,9 @@
       margin-top: 10px;
     }
   </style>
+
+  <!-- Supabase Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -39,29 +42,39 @@
 </div>
 
 <script>
-  // Grab access token from URL hash
-  const hashParams = new URLSearchParams(window.location.hash.substring(1));
-  const access_token = hashParams.get('access_token');
+  // Initialize Supabase
+  const supabaseUrl = 'https://xzlclzbzegzzhkhdztby.supabase.co';
+  const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // (shortened here, you already have yours)
+  const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-  if (!access_token) {
-    document.getElementById('reset-form').innerHTML = '<h2>Missing access token. Please request a new password reset email.</h2>';
-  }
+  let sessionRestored = false;
 
-  function validatePassword(password) {
-    const minLength = /.{6,}/;
-    const uppercase = /[A-Z]/;
-    const lowercase = /[a-z]/;
-    const number = /\d/;
-    const specialChar = /[!@#$%^&*(),.?":{}|<>\\/~`+=_-]/;
+  window.onload = async function() {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const access_token = hashParams.get('access_token');
+    const refresh_token = hashParams.get('refresh_token');
 
-    return minLength.test(password) &&
-           uppercase.test(password) &&
-           lowercase.test(password) &&
-           number.test(password) &&
-           specialChar.test(password);
-  }
+    if (!access_token || !refresh_token) {
+      document.getElementById('reset-form').innerHTML = '<h2>Missing access token. Please request a new password reset email.</h2>';
+      return;
+    }
 
-  function resetPassword() {
+    // Restore session
+    const { data, error } = await supabase.auth.setSession({
+      access_token: access_token,
+      refresh_token: refresh_token,
+    });
+
+    if (error) {
+      console.error('Session error:', error);
+      document.getElementById('reset-form').innerHTML = '<h2>Session error. Please request a new password reset email.</h2>';
+    } else {
+      console.log('Session restored.');
+      sessionRestored = true;
+    }
+  };
+
+  window.resetPassword = async function() {
     const newPassword = document.getElementById('newPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
     const errorDiv = document.getElementById('errorMessage');
@@ -77,27 +90,33 @@
       return;
     }
 
-    fetch('https://xzlclzbzegzzhkhdztby.supabase.co/auth/v1/user', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${access_token}`
-      },
-      body: JSON.stringify({ password: newPassword })
-    })
-    .then(response => response.json().then(data => ({ ok: response.ok, data })))
-    .then(({ ok, data }) => {
-      if (ok) {
-        window.location.href = "success.html";
-      } else {
-        console.error(data);
-        document.getElementById('errorMessage').innerText = "Failed to reset password. Please request a new reset email.";
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      errorDiv.innerText = "An error occurred. Please try again.";
-    });
+    if (!sessionRestored) {
+      errorDiv.innerText = "Session not restored. Please request a new password reset email.";
+      return;
+    }
+
+    const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+
+    if (error) {
+      console.error('Failed to reset password:', error);
+      errorDiv.innerText = "Failed to reset password. Please request a new reset email.";
+    } else {
+      window.location.href = "success.html";
+    }
+  };
+
+  function validatePassword(password) {
+    const minLength = /.{6,}/;
+    const uppercase = /[A-Z]/;
+    const lowercase = /[a-z]/;
+    const number = /\d/;
+    const specialChar = /[!@#$%^&*(),.?":{}|<>\\/~`+=_-]/;
+
+    return minLength.test(password) &&
+           uppercase.test(password) &&
+           lowercase.test(password) &&
+           number.test(password) &&
+           specialChar.test(password);
   }
 </script>
 
