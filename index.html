@@ -77,12 +77,12 @@
       return;
     }
 
-    fetch('https://YOUR-PROJECT.supabase.co/auth/v1/user', {
+    fetch('https://xzlclzbzegzzhkhdztby.supabase.co/auth/v1/user', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${access_token}`,
-        'apikey': 'YOUR-ANON-KEY'
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bGNsemJ6ZWd6emhraGR6dGJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA4Njc0MTcsImV4cCI6MjA1NjQ0MzQxN30.rAWi91KZ5gT40NWeLLv0qzU8g7-oh3u0Qz5OwSFMsoc'
       },
       body: JSON.stringify({ password: newPassword })
     })
