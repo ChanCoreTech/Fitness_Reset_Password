@@ -34,25 +34,37 @@
 <div id="reset-form">
   <input type="password" id="newPassword" placeholder="New Password"><br>
   <input type="password" id="confirmPassword" placeholder="Confirm Password"><br>
-  <button id="submitBtn">Submit</button>
+  <button onclick="resetPassword()">Submit</button>
   <div id="errorMessage" class="error"></div>
 </div>
 
 <script>
-  const supabaseUrl = 'https://xzlclzbzegzzhkhdztby.supabase.co';
-  const submitBtn = document.getElementById('submitBtn');
-  const errorDiv = document.getElementById('errorMessage');
-
-  const params = new URLSearchParams(window.location.hash.substring(1));
-  const access_token = params.get('access_token');
+  const hashParams = new URLSearchParams(window.location.hash.substring(1));
+  const access_token = hashParams.get('access_token');
 
   if (!access_token) {
     document.getElementById('reset-form').innerHTML = '<h2>Missing access token. Please request a new password reset email.</h2>';
   }
 
-  submitBtn.addEventListener('click', async () => {
+  function validatePassword(password) {
+    const minLength = /.{6,}/;
+    const uppercase = /[A-Z]/;
+    const lowercase = /[a-z]/;
+    const number = /\d/;
+    const specialChar = /[!@#$%^&*(),.?":{}|<>\\/~`+=_-]/;
+
+    return minLength.test(password) &&
+           uppercase.test(password) &&
+           lowercase.test(password) &&
+           number.test(password) &&
+           specialChar.test(password);
+  }
+
+  function resetPassword() {
     const newPassword = document.getElementById('newPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
+    const errorDiv = document.getElementById('errorMessage');
+
     errorDiv.innerText = "";
 
     if (newPassword !== confirmPassword) {
@@ -61,38 +73,29 @@
     }
 
     if (!validatePassword(newPassword)) {
-      errorDiv.innerText = "Password must meet strength requirements.";
+      errorDiv.innerText = "Password must be at least 6 characters and include an uppercase, lowercase, number, and special character.";
       return;
     }
 
-    try {
-      const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${access_token}`
-        },
-        body: JSON.stringify({ password: newPassword })
-      });
-
+    fetch('https://xzlclzbzegzzhkhdztby.supabase.co/auth/v1/user', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${access_token}`
+      },
+      body: JSON.stringify({ password: newPassword })
+    })
+    .then(response => {
       if (response.ok) {
-        window.location.href = "success.html";
+        window.location.href = "success.html"; // Go to success page
       } else {
         errorDiv.innerText = "Failed to reset password. Please try again.";
       }
-    } catch (err) {
+    })
+    .catch(err => {
       console.error(err);
       errorDiv.innerText = "An error occurred. Please try again.";
-    }
-  });
-
-  function validatePassword(password) {
-    const minLength = /.{6,}/;
-    const uppercase = /[A-Z]/;
-    const lowercase = /[a-z]/;
-    const number = /\d/;
-    const specialChar = /[!@#$%^&*(),.?":{}|<>\\/~`+=_-]/;
-    return minLength.test(password) && uppercase.test(password) && lowercase.test(password) && number.test(password) && specialChar.test(password);
+    });
   }
 </script>
 
