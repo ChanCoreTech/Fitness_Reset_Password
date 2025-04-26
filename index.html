@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reset Password</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      text-align: center;
+      padding-top: 50px;
+    }
+    input {
+      margin: 10px;
+      padding: 10px;
+      width: 250px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Please use the text boxes below to reset your password.</h1>
+
+<div id="reset-form">
+  <input type="password" id="newPassword" placeholder="New Password"><br>
+  <input type="password" id="confirmPassword" placeholder="Confirm Password"><br>
+  <button onclick="resetPassword()">Submit</button>
+  <div id="errorMessage" class="error"></div>
+</div>
+
+<script>
+  const url = new URL(window.location.href);
+  const access_token = url.searchParams.get('access_token');
+
+  if (!access_token) {
+    document.getElementById('reset-form').innerHTML = '<h2>Missing access token. Please request a new password reset email.</h2>';
+  }
+
+  function validatePassword(password) {
+    const minLength = /.{6,}/;
+    const uppercase = /[A-Z]/;
+    const lowercase = /[a-z]/;
+    const number = /\d/;
+    const specialChar = /[!@#$%^&*(),.?":{}|<>\\/~`+=_-]/;
+
+    return minLength.test(password) &&
+           uppercase.test(password) &&
+           lowercase.test(password) &&
+           number.test(password) &&
+           specialChar.test(password);
+  }
+
+  function resetPassword() {
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const errorDiv = document.getElementById('errorMessage');
+
+    errorDiv.innerText = "";
+
+    if (newPassword !== confirmPassword) {
+      errorDiv.innerText = "Passwords do not match.";
+      return;
+    }
+
+    if (!validatePassword(newPassword)) {
+      errorDiv.innerText = "Password must be at least 6 characters and include an uppercase, lowercase, number, and special character.";
+      return;
+    }
+
+    fetch('https://YOUR-PROJECT.supabase.co/auth/v1/user', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${access_token}`,
+        'apikey': 'YOUR-ANON-KEY'
+      },
+      body: JSON.stringify({ password: newPassword })
+    })
+    .then(response => {
+      if (response.ok) {
+        // Redirect to a success page
+        window.location.href = "success.html";
+      } else {
+        errorDiv.innerText = "Failed to reset password. Please try again.";
+      }
+    })
+    .catch(err => {
+      errorDiv.innerText = "An error occurred. Please try again.";
+    });
+  }
+</script>
+
+</body>
+</html>
