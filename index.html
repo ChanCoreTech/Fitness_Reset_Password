@@ -1,6 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reset Password</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      text-align: center;
+      padding-top: 50px;
+    }
+    input {
+      margin: 10px;
+      padding: 10px;
+      width: 250px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .error {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Please use the text boxes below to reset your password.</h1>
+
+<div id="reset-form">
+  <input type="password" id="newPassword" placeholder="New Password"><br>
+  <input type="password" id="confirmPassword" placeholder="Confirm Password"><br>
+  <button onclick="resetPassword()">Submit</button>
+  <div id="errorMessage" class="error"></div>
+</div>
+
 <script>
+window.onload = function() {
   const hashParams = new URLSearchParams(window.location.hash.substring(1));
   const access_token = hashParams.get('access_token');
+
+  if (!access_token) {
+    document.getElementById('reset-form').innerHTML = '<h2>Missing access token. Please request a new password reset email.</h2>';
+    return;
+  }
 
   function validatePassword(password) {
     const minLength = /.{6,}/;
@@ -16,17 +62,12 @@
            specialChar.test(password);
   }
 
-  function resetPassword() {
+  window.resetPassword = function() {
     const newPassword = document.getElementById('newPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
     const errorDiv = document.getElementById('errorMessage');
 
     errorDiv.innerText = "";
-
-    if (!access_token) {
-      errorDiv.innerText = "Missing access token. Please request a new password reset email.";
-      return;
-    }
 
     if (newPassword !== confirmPassword) {
       errorDiv.innerText = "Passwords do not match.";
@@ -58,4 +99,8 @@
       errorDiv.innerText = "An error occurred. Please try again.";
     });
   }
+}
 </script>
+
+</body>
+</html>
