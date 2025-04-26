@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Reset Password</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -26,9 +27,6 @@
       margin-top: 10px;
     }
   </style>
-
-  <!-- Supabase Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -37,44 +35,35 @@
 <div id="reset-form">
   <input type="password" id="newPassword" placeholder="New Password"><br>
   <input type="password" id="confirmPassword" placeholder="Confirm Password"><br>
-  <button onclick="resetPassword()">Submit</button>
+  <button id="submitBtn">Submit</button>
   <div id="errorMessage" class="error"></div>
 </div>
 
 <script>
-  // Initialize Supabase
   const supabaseUrl = 'https://xzlclzbzegzzhkhdztby.supabase.co';
-  const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // (shortened here, you already have yours)
+  const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bGNsemJ6ZWd6emhraGR6dGJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA4Njc0MTcsImV4cCI6MjA1NjQ0MzQxN30.rAWi91KZ5gT40NWeLLv0qzU8g7-oh3u0Qz5OwSFMsoc';
   const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-  let sessionRestored = false;
+  let access_token, refresh_token;
 
   window.onload = async function() {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const access_token = hashParams.get('access_token');
-    const refresh_token = hashParams.get('refresh_token');
+    access_token = hashParams.get('access_token');
+    refresh_token = hashParams.get('refresh_token');
 
     if (!access_token || !refresh_token) {
       document.getElementById('reset-form').innerHTML = '<h2>Missing access token. Please request a new password reset email.</h2>';
       return;
     }
 
-    // Restore session
-    const { data, error } = await supabase.auth.setSession({
-      access_token: access_token,
-      refresh_token: refresh_token,
-    });
-
+    const { error } = await supabase.auth.setSession({ access_token, refresh_token });
     if (error) {
       console.error('Session error:', error);
       document.getElementById('reset-form').innerHTML = '<h2>Session error. Please request a new password reset email.</h2>';
-    } else {
-      console.log('Session restored.');
-      sessionRestored = true;
     }
   };
 
-  window.resetPassword = async function() {
+  document.getElementById('submitBtn').onclick = async function() {
     const newPassword = document.getElementById('newPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
     const errorDiv = document.getElementById('errorMessage');
@@ -90,12 +79,7 @@
       return;
     }
 
-    if (!sessionRestored) {
-      errorDiv.innerText = "Session not restored. Please request a new password reset email.";
-      return;
-    }
-
-    const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
 
     if (error) {
       console.error('Failed to reset password:', error);
