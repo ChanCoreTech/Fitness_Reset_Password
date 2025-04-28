@@ -40,30 +40,31 @@
 </div>
 
 <script>
+  // ✅ Your Supabase credentials
   const supabaseUrl = 'https://xzlclzbzegzzhkhdztby.supabase.co';
   const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bGNsemJ6ZWd6emhraGR6dGJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA4Njc0MTcsImV4cCI6MjA1NjQ0MzQxN30.rAWi91KZ5gT40NWeLLv0qzU8g7-oh3u0Qz5OwSFMsoc';
   const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-  let access_token, refresh_token;
+  // ✅ Get tokens from URL fragment (after #)
+  const hashParams = new URLSearchParams(window.location.hash.substring(1));
+  const access_token = hashParams.get('access_token');
+  const refresh_token = hashParams.get('refresh_token');
 
-  window.onload = async function() {
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    access_token = hashParams.get('access_token');
-    refresh_token = hashParams.get('refresh_token');
+  if (!access_token || !refresh_token) {
+    document.getElementById('reset-form').innerHTML = '<h2>Missing access token. Please request a new password reset email.</h2>';
+  } else {
+    supabase.auth.setSession({
+      access_token: access_token,
+      refresh_token: refresh_token
+    }).then(({ error }) => {
+      if (error) {
+        console.error('Session restoration failed:', error);
+        document.getElementById('reset-form').innerHTML = '<h2>Session error. Please request a new password reset email.</h2>';
+      }
+    });
+  }
 
-    if (!access_token || !refresh_token) {
-      document.getElementById('reset-form').innerHTML = '<h2>Missing access token. Please contact fitness-freaks@gmail.com for support.</h2>';
-      return;
-    }
-
-    const { error } = await supabase.auth.setSession({ access_token, refresh_token });
-    if (error) {
-      console.error('Session error:', error);
-      document.getElementById('reset-form').innerHTML = '<h2>Session error. Please contact fitness-freaks@gmail.com for support.</h2>';
-    }
-  };
-
-  document.getElementById('submitBtn').onclick = async function() {
+  document.getElementById('submitBtn').onclick = async function () {
     const newPassword = document.getElementById('newPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
     const errorDiv = document.getElementById('errorMessage');
@@ -75,15 +76,15 @@
     }
 
     if (!validatePassword(newPassword)) {
-      errorDiv.innerText = "Password must be different than the previous password and at least 6 characters and include an uppercase, lowercase, number, and special character.";
+      errorDiv.innerText = "Password must be at least 6 characters, and include an uppercase, lowercase, number, and special character.";
       return;
     }
 
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    const { data, error } = await supabase.auth.updateUser({ password: newPassword });
 
     if (error) {
-      console.error('Failed to reset password:', error);
-      errorDiv.innerText = "Failed to reset password. Please contact support at fitness-freaks@gmail.com. Note that the new password must be different than your previous password.";
+      console.error('Password update error:', error);
+      errorDiv.innerText = "Failed to reset password. Make sure your new password is different from the previous one and meets complexity requirements.";
     } else {
       window.location.href = "success.html";
     }
