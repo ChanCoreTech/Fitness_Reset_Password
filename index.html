@@ -40,12 +40,10 @@
 </div>
 
 <script>
-  // ✅ Your Supabase credentials
   const supabaseUrl = 'https://xzlclzbzegzzhkhdztby.supabase.co';
   const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bGNsemJ6ZWd6emhraGR6dGJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA4Njc0MTcsImV4cCI6MjA1NjQ0MzQxN30.rAWi91KZ5gT40NWeLLv0qzU8g7-oh3u0Qz5OwSFMsoc';
   const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-  // ✅ Get tokens from URL fragment (after #)
   const hashParams = new URLSearchParams(window.location.hash.substring(1));
   const access_token = hashParams.get('access_token');
   const refresh_token = hashParams.get('refresh_token');
